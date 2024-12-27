@@ -1,7 +1,6 @@
 import { Hero } from "@/components/Hero";
 import { Stats } from "@/components/Stats";
 import { Features as FeaturesSection } from "@/components/Features";
-import { Footer } from "@/components/Footer";
 
 const Features = () => {
   return (
@@ -9,7 +8,6 @@ const Features = () => {
       <Hero />
       <Stats />
       <FeaturesSection />
-      <Footer />
     </div>
   );
 };

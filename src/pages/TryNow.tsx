@@ -1,7 +1,7 @@
 import { ImageProcessor } from "@/components/ImageProcessor";
 import { Footer } from "@/components/Footer";
 
-const TryNow = () => {
+export default function TryNow() {
   return (
     <div className="min-h-screen">
       <div className="py-20 px-4 hero-gradient">
@@ -13,6 +13,4 @@ const TryNow = () => {
       <Footer />
     </div>
   );
-};
-
-export default TryNow;
+}

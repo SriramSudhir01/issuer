@@ -1,5 +1,4 @@
 import { HowItWorks as HowItWorksSection } from "@/components/HowItWorks";
-import { Footer } from "@/components/Footer";
 
 const HowItWorks = () => {
   return (
@@ -10,7 +9,6 @@ const HowItWorks = () => {
         </h1>
       </div>
       <HowItWorksSection />
-      <Footer />
     </div>
   );
 };

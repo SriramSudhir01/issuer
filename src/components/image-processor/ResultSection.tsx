@@ -1,7 +1,8 @@
-import { Button } from "../ui/button";
-import { Progress } from "../ui/progress";
-import { Trash2, Download, Wand2 } from "lucide-react";
-import { Card } from "../ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { LazyImage } from "@/components/ui/lazy-image";
+import { Trash2, Download, Play, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ResultSectionProps {
   originalImage: string;
@@ -11,11 +12,12 @@ interface ResultSectionProps {
   onProcess: () => void;
   onDelete: () => void;
   onDownload: () => void;
-  onEdit: () => void;
-  setIsEditing: (isEditing: boolean) => void;
+  totalImages: number;
+  currentIndex: number;
+  onNavigate: (index: number) => void;
 }
 
-export const ResultSection = ({
+export function ResultSection({
   originalImage,
   processedImage,
   isProcessing,
@@ -23,102 +25,167 @@ export const ResultSection = ({
   onProcess,
   onDelete,
   onDownload,
-  onEdit,
-  setIsEditing,
-}: ResultSectionProps) => {
+  totalImages,
+  currentIndex,
+  onNavigate,
+}: ResultSectionProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll into view when image changes
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [currentIndex, processedImage]);
+
   return (
-    <div className="space-y-8">
-      <div className="grid md:grid-cols-2 gap-8">
+    <div ref={containerRef} className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Original Image */}
-        <Card className="overflow-hidden">
-          <div className="p-4 border-b bg-gray-50">
-            <h3 className="text-lg font-semibold text-gray-900">Original Image</h3>
-          </div>
-          <div className="p-6">
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-              <img
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Original Image</h2>
+          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+            {originalImage ? (
+              <LazyImage
                 src={originalImage}
                 alt="Original"
-                className="max-h-full max-w-full object-contain"
+                className="w-full h-full object-contain"
               />
-            </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">No image selected</p>
+              </div>
+            )}
           </div>
-        </Card>
+        </div>
 
         {/* Processed Image */}
-        <Card className="overflow-hidden">
-          <div className="p-4 border-b bg-gray-50">
-            <h3 className="text-lg font-semibold text-gray-900">Processed Image</h3>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Processed Image</h2>
+          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+            {processedImage ? (
+              <LazyImage
+                src={processedImage}
+                alt="Processed"
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full space-y-6 p-6">
+                {isProcessing ? (
+                  <div className="w-full max-w-[240px] space-y-6">
+                    <div className="relative w-24 h-24 mx-auto">
+                      <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+                      <div 
+                        className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"
+                        style={{
+                          animationDuration: '1s',
+                          animationTimingFunction: 'linear',
+                        }}
+                      ></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-lg font-semibold text-primary">{progress}%</span>
+                      </div>
+                    </div>
+                    <div className="text-center space-y-3">
+                      <h3 className="text-lg font-semibold text-gray-900">Processing Image</h3>
+                      <p className="text-sm text-gray-500">
+                        Removing background...
+                      </p>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
+                ) : (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
+                      <Play className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-500 font-medium mb-2">
+                        Ready to Process
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        Click the Process button below to remove background
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <div className="p-6">
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-              {processedImage ? (
-                <img
-                  src={processedImage}
-                  alt="Processed"
-                  className="max-h-full max-w-full object-contain"
-                />
-              ) : (
-                <div className="text-center text-gray-500 p-4">
-                  <Wand2 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p>Click "Remove Background" to process the image</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
+        </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-wrap gap-4 justify-center">
-        <Button
-          onClick={onProcess}
-          disabled={isProcessing}
-          className="bg-primary hover:bg-primary/90 text-white min-w-[200px] h-12"
-        >
-          {isProcessing ? (
-            <div className="w-full space-y-2">
-              <span>Processing... {progress}%</span>
-              <Progress value={progress} className="w-full h-1" />
-            </div>
-          ) : (
-            <>
-              <Wand2 className="w-5 h-5 mr-2" />
-              Remove Background
-            </>
-          )}
-        </Button>
+      {/* Image Navigation */}
+      {totalImages > 1 && (
+        <div className="flex justify-center items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onNavigate(currentIndex - 1)}
+            disabled={currentIndex === 0}
+            className="hover:bg-gray-100 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-gray-600 min-w-[100px] text-center">
+            Image {currentIndex + 1} of {totalImages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onNavigate(currentIndex + 1)}
+            disabled={currentIndex === totalImages - 1}
+            className="hover:bg-gray-100 transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
+      {/* Action Buttons */}
+      <div className="flex flex-wrap justify-center gap-4">
         <Button
-          variant="destructive"
+          variant="outline"
+          size="lg"
           onClick={onDelete}
-          className="min-w-[200px] h-12"
+          className="w-full sm:w-40 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
         >
-          <Trash2 className="w-5 h-5 mr-2" />
+          <Trash2 className="mr-2 h-4 w-4" />
           Delete
         </Button>
 
         <Button
-          onClick={() => {
-            onEdit();
-            setIsEditing(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white min-w-[200px] h-12"
+          size="lg"
+          onClick={onProcess}
+          disabled={isProcessing || !originalImage}
+          className="w-full sm:w-40 relative"
         >
-          <Wand2 className="w-5 h-5 mr-2" />
-          Edit Image
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Play className="mr-2 h-4 w-4" />
+              Process
+            </>
+          )}
         </Button>
 
         {processedImage && (
           <Button
+            variant="default"
+            size="lg"
             onClick={onDownload}
-            className="bg-green-600 hover:bg-green-700 text-white min-w-[200px] h-12"
+            disabled={isProcessing}
+            className="w-full sm:w-40 hover:bg-primary/90 transition-colors"
           >
-            <Download className="w-5 h-5 mr-2" />
+            <Download className="mr-2 h-4 w-4" />
             Download
           </Button>
         )}
       </div>
     </div>
   );
-};
+}
